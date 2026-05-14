@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Face } from "@/lib/types";
+import type { FaceView } from "@/lib/types";
 
 type Props = {
   src: string;
-  faces: Face[];
+  faces: FaceView[];
   selectedFaceId?: string | null;
   onSelect?: (faceId: string) => void;
 };
@@ -43,7 +43,9 @@ export function BBoxOverlay({ src, faces, selectedFaceId, onSelect }: Props) {
           const w = f.bbox.w * size.w;
           const h = f.bbox.h * size.h;
           const selected = f.id === selectedFaceId;
-          const stroke = selected ? "#22c55e" : f.label_id ? "#3b82f6" : "#f59e0b";
+          // Annotated box = teal, unannotated = amber, current selection
+          // emphasised with primary violet (vibrant token values).
+          const stroke = selected ? "#7C2DFF" : f.labelId ? "#00CC9A" : "#FFAA14";
           return (
             <g key={f.id}>
               <rect
@@ -53,7 +55,7 @@ export function BBoxOverlay({ src, faces, selectedFaceId, onSelect }: Props) {
                 className="pointer-events-auto cursor-pointer"
                 onClick={() => onSelect?.(f.id)}
               />
-              {f.label_name && (
+              {f.labelName && (
                 <text
                   x={x + 4} y={y + 14}
                   className="pointer-events-none"
@@ -61,7 +63,7 @@ export function BBoxOverlay({ src, faces, selectedFaceId, onSelect }: Props) {
                   fontSize="12"
                   style={{ paintOrder: "stroke", stroke: "#000", strokeWidth: 3 }}
                 >
-                  {f.label_name}
+                  {f.labelName}
                 </text>
               )}
             </g>

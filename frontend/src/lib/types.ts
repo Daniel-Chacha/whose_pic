@@ -1,44 +1,47 @@
 export type BBox = { x: number; y: number; w: number; h: number };
 
-export type Face = {
+// Lightweight image metadata. The pixels live as a Blob in IndexedDB, keyed by
+// `id`; at runtime the store exposes an object URL via `getImageUrl(id)`.
+export type ImageMeta = {
   id: string;
-  image_id: string;
-  label_id: string | null;
-  label_name: string | null;
-  bbox: BBox;
-  det_score: number | null;
-  created_at: string;
+  width: number;
+  height: number;
+  createdAt: number;
 };
 
-export type ImageRow = {
+export type StoredFace = {
   id: string;
-  storage_path: string;
-  width: number | null;
-  height: number | null;
-  mime_type: string | null;
-  created_at: string;
-  signed_url: string | null;
+  imageId: string;
+  bbox: BBox; // normalized [0,1]
+  detScore: number;
+  descriptor: number[]; // 128-d face-api descriptor
+  labelId: string | null;
 };
 
-export type ImageWithFaces = ImageRow & { faces: Face[] };
-
-export type Label = {
+export type StoredLabel = {
   id: string;
   name: string;
-  cover_face_id: string | null;
-  cover_url: string | null;
-  face_count: number;
-  created_at: string;
+  createdAt: number;
 };
 
-export type LabelSuggestion = {
-  label_id: string;
+// A face joined with its label's name, for rendering.
+export type FaceView = StoredFace & { labelName: string | null };
+
+export type ImageWithFaces = {
+  image: ImageMeta;
+  faces: FaceView[];
+};
+
+export type LabelWithCount = {
+  id: string;
+  name: string;
+  faceCount: number;
+  coverImageId: string | null;
+};
+
+export type Suggestion = {
+  labelId: string;
   name: string;
   score: number;
-  sample_face_id: string | null;
-};
-
-export type LabelSearchResponse = {
-  labeled?: ImageRow[];
-  suggested?: ImageRow[];
+  sampleFaceId: string;
 };

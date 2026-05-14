@@ -1,25 +1,27 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { auth } from "@/lib/auth";
-import { SignOutButton } from "@/components/SignOutButton";
+import { Logo } from "@/components/Logo";
+import { SessionGate } from "@/components/SessionGate";
+import { ClearSessionButton } from "@/components/ClearSessionButton";
 
-export default async function AppLayout({ children }: { children: ReactNode }) {
-  const session = await auth();
+export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <header className="border-b border-stone-200 dark:border-stone-800">
-        <nav className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3">
-          <Link href="/gallery" className="font-semibold">WhosePic</Link>
-          {session?.user && (
-            <>
-              <Link href="/upload" className="text-sm hover:underline">Upload</Link>
-              <Link href="/people" className="text-sm hover:underline">People</Link>
-              <span className="ml-auto"><SignOutButton /></span>
-            </>
-          )}
+      <header className="border-b border-neutral-100 bg-white/80 backdrop-blur">
+        <nav className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
+          <Link
+            href="/gallery"
+            className="flex items-center gap-2 text-lg font-semibold text-primary-900"
+          >
+            <Logo className="h-7 w-7" />
+            WhosePic
+          </Link>
+          <ClearSessionButton />
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6">
+        <SessionGate>{children}</SessionGate>
+      </main>
     </>
   );
 }

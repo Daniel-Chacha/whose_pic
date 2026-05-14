@@ -34,10 +34,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Models / data
-models/
-*.onnx
-*.pkl
-
 # Logs
 *.log

@@ -1,48 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
-import type { Face, Label } from "@/lib/types";
+import { useSessionStore } from "@/lib/sessionStore";
+import type { FaceView, LabelWithCount } from "@/lib/types";
 
 type Props = {
-  face: Face;
-  labels: Label[];
-  onAssigned: (face: Face) => void;
+  face: FaceView;
+  labels: LabelWithCount[];
 };
 
-export function LabelPicker({ face, labels, onAssigned }: Props) {
-  const [query, setQuery] = useState(face.label_name ?? "");
-  const [busy, setBusy] = useState(false);
+export function LabelPicker({ face, labels }: Props) {
+  const assignLabel = useSessionStore((s) => s.assignLabel);
+  const assignLabelByName = useSessionStore((s) => s.assignLabelByName);
+  const clearLabel = useSessionStore((s) => s.clearLabel);
+
+  const [query, setQuery] = useState(face.labelName ?? "");
 
   useEffect(() => {
-    setQuery(face.label_name ?? "");
-  }, [face.id, face.label_name]);
+    setQuery(face.labelName ?? "");
+  }, [face.id, face.labelName]);
 
   const matches = labels.filter((l) =>
     l.name.toLowerCase().includes(query.toLowerCase()),
   );
-  const exact = labels.find((l) => l.name.toLowerCase() === query.trim().toLowerCase());
-
-  async function pick(label_id: string | null, name: string | null) {
-    setBusy(true);
-    const updated = await apiFetch<Face>(`/faces/${face.id}/label`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(label_id ? { label_id } : { name }),
-    });
-    setBusy(false);
-    onAssigned({
-      ...updated,
-      label_name: name ?? labels.find((l) => l.id === label_id)?.name ?? null,
-    });
-  }
-
-  async function clear() {
-    setBusy(true);
-    const updated = await apiFetch<Face>(`/faces/${face.id}/label`, { method: "DELETE" });
-    setBusy(false);
-    onAssigned({ ...updated, label_name: null });
-  }
+  const exact = labels.find(
+    (l) => l.name.toLowerCase() === query.trim().toLowerCase(),
+  );
 
   return (
     <div className="space-y-2">
@@ -50,35 +33,38 @@ export function LabelPicker({ face, labels, onAssigned }: Props) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Type a name…"
-        disabled={busy}
-        className="w-full rounded border border-stone-300 bg-transparent px-3 py-2 text-sm dark:border-stone-700"
+        className="w-full rounded-lg border border-neutral-100 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-[1.5px] focus:border-primary-400 focus:outline-none"
       />
-      <ul className="max-h-48 overflow-auto rounded border border-stone-200 dark:border-stone-800">
+      <ul className="max-h-48 overflow-auto rounded-lg border border-neutral-100">
         {matches.map((l) => (
           <li key={l.id}>
             <button
-              onClick={() => pick(l.id, null)}
-              disabled={busy}
-              className="block w-full px-3 py-2 text-left text-sm hover:bg-stone-100 dark:hover:bg-stone-800"
+              type="button"
+              onClick={() => assignLabel(face.id, l.id)}
+              className="block w-full px-3 py-2 text-left text-sm text-neutral-900 transition-colors hover:bg-primary-50"
             >
-              {l.name} <span className="text-stone-500">({l.face_count})</span>
+              {l.name} <span className="text-neutral-400">({l.faceCount})</span>
             </button>
           </li>
         ))}
         {query.trim() && !exact && (
           <li>
             <button
-              onClick={() => pick(null, query.trim())}
-              disabled={busy}
-              className="block w-full px-3 py-2 text-left text-sm font-medium text-blue-600 hover:bg-stone-100 dark:hover:bg-stone-800"
+              type="button"
+              onClick={() => assignLabelByName(face.id, query.trim())}
+              className="block w-full px-3 py-2 text-left text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
             >
-              + Create "{query.trim()}"
+              + Create &quot;{query.trim()}&quot;
             </button>
           </li>
         )}
       </ul>
-      {face.label_id && (
-        <button onClick={clear} disabled={busy} className="text-xs text-red-600 underline">
+      {face.labelId && (
+        <button
+          type="button"
+          onClick={() => clearLabel(face.id)}
+          className="text-xs text-red-600 underline"
+        >
           Clear label
         </button>
       )}
